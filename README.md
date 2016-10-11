@@ -18,16 +18,14 @@ This plugin provides support for importing bulk data, typically via CSV file upl
  - Support for canceling asynchronous and queue-based import processing
  - Support in customized import instructions
  - Support for archiving imported file
- 
+
 Data import functionality is exposed using Grails services.
 
 Import file upload POST URL is:
 
-```
-/imports/process
-```
+    /imports/process
 
-This endpoint expect multi-part mime encoded and accepts 4 parameters: 
+This endpoint expect multi-part mime encoded and accepts 4 parameters:
 
 - entityName [string]
 - import [file] \(parameter can be customized in config\)
@@ -40,41 +38,42 @@ Refer to grails.plugins.imports.ImportsService to see how things work.
 
 Plugin project has sample imports in test/imports and entry point is:
 
-```
-http://localhost:8080/importsTest.
-```
+    http://localhost:8080/importsTest
 
 Basic Example
 -------------
 
 Domain class:
 
-    class MyDomainClass {
-    	String emailValue
-    	Long longValue
-    	Double doubleValue
-    	Integer integerValue
-    	Integer integerValueMarshalled
-    	String stringValue
-    	String stringValueNullable
-    	String listValue
-    	String aliasValue
-    	Date dateCreated
-    	Date lastUpdated
-        static constraints = {
-        	stringValueNullable(nullable:true)
-    		  integerValueMarshalled(nullable:true)
-        	emailValue(email:true)
-        	listValue(inList:['listValue1','listValue2', 'listValue3'])
-        }
+```groovy
+class MyDomainClass {
+    String emailValue
+    Long longValue
+    Double doubleValue
+    Integer integerValue
+    Integer integerValueMarshalled
+    String stringValue
+    String stringValueNullable
+    String listValue
+    String aliasValue
+    Date dateCreated
+    Date lastUpdated
+    static constraints = {
+        stringValueNullable(nullable:true)
+        integerValueMarshalled(nullable:true)
+        emailValue(email:true)
+        listValue(inList:['listValue1','listValue2', 'listValue3'])
     }
+}
+```
 
 Import service:
 
-    class MyDomainClassImportService {
-    	static imports = MyDomainClass
-    	static transactional = false //turn off transactions for better throughput
-    }
+```groovy
+class MyDomainClassImportService {
+    static imports = MyDomainClass
+}
+```
 
 Import CSV file:
 
@@ -88,22 +87,25 @@ Property Alias Example
 
 Domain class:
 
-    class MyDomainClass {
-        	String stringValue
-        	Date dateCreated
-        	Date lastUpdated
-    }
+```groovy
+class MyDomainClass {
+    String stringValue
+    Date dateCreated
+    Date lastUpdated
+}
+```
 
 Import service:
 
-    class MyDomainClassImportService {
-        static imports = MyDomainClass
-        static transactional = false //turn off transactions for better throughput
-    
-        def columns(params, importLogId) {
-    		['FriendlyColumnName':'stringValue']
-    	}
+```groovy
+class MyDomainClassImportService {
+    static imports = MyDomainClass
+
+    def columns(params, importLogId) {
+        ['FriendlyColumnName':'stringValue']
     }
+}
+```
 
 Import CSV file:
 
@@ -117,96 +119,106 @@ Asynchronous Example
 
 Domain class:
 
-    class MyDomainClass {
-        	String stringValue
-    }
+```groovy
+class MyDomainClass {
+    String stringValue
+}
+```
 
 Import service:
 
-    class MyDomainClassImportService {
-        static imports = MyDomainClass
-        static transactional = false //turn off transactions for better throughput
-    	def async = true
-    }
+```groovy
+class MyDomainClassImportService {
+    static imports = MyDomainClass
+    def async = true
+}
+```
 
 Import CSV file:
 
     stringValue
     value1
     value2
-    value3    
+    value3
 
 Queue Example
 ----------------------
 
 Domain class:
 
-    class MyDomainClass {
-        	String stringValue
-    }
+```groovy
+class MyDomainClass {
+    String stringValue
+}
+```
 
 Import service:
 
-    class MyDomainClassImportService {
-        static imports = MyDomainClass
-        static transactional = false //turn off transactions for better throughput
-    	def useQueue = true
-    }
+```groovy
+class MyDomainClassImportService {
+    static imports = MyDomainClass
+    def useQueue = true
+}
+```
 
 Import CSV file:
 
     stringValue
     value1
     value2
-    value3        
+    value3
 Non-Domain Class Example
 ----------------------
 
 Import service:
 
-    class MyDomainClassImportService {
-        static imports = 'ArbitraryName'
-        static transactional = false //turn off transactions for better throughput
-        def importsLogger
-    	def processRow(row, index, columns, params, importLogId) {
-    	    def success = false
-    	    // do something interesting
-			if (!success) {
-				importsLogger.logErrorRow(importLogId, row, index, 'something bad happened')
-			} else {
-				importsLogger.logSuccessRow(importLogId, row, index)
-			}
-		    if (isImportComplete(importLogId)) // should do this if using queue
-		        importsLogger.processComplete(params, importLogId)
-    	}
+```groovy
+class MyDomainClassImportService {
+    static imports = 'ArbitraryName'
+    def importsLogger
+    def processRow(row, index, columns, params, importLogId) {
+        def success = false
+        // do something interesting
+        if (!success) {
+            importsLogger.logErrorRow(importLogId, row, index, 'something bad happened')
+        } else {
+            importsLogger.logSuccessRow(importLogId, row, index)
+        }
+        if (isImportComplete(importLogId)) // should do this if using queue
+            importsLogger.processComplete(params, importLogId)
     }
+}
+```
 
 Import CSV file:
 
     anyColumnValue
     value1
     value2
-    value3    
+    value3
 
 Custom Update Example
 ----------------------
 
 Domain class:
 
-    class MyDomainClass {
-        	String stringValue
-        	String code
-        	Date dateCreated
-        	Date lastUpdated
-    }
+```groovy
+class MyDomainClass {
+    String stringValue
+    String code
+    Date dateCreated
+    Date lastUpdated
+}
+```
 
 Import service:
 
-    class MyDomainClassImportService {
-        static imports = MyDomainClass
-        static transactional = false //turn off transactions for better throughput
-	    def matchProperties = ['code']
-    }
+```groovy
+class MyDomainClassImportService {
+    static imports = MyDomainClass
+    def matchProperties = ['code']
+}
+```
 
 Import CSV file:
 
@@ -214,103 +226,110 @@ Import CSV file:
     value1,ABC123
     value2,XYZ789
     value3,LMN456
-    
+
 Association Example
 ----------------------
 
 Domain classes:
-```
+
+```groovy
 class MyDomainClass {
-    	String stringValue
-    	MyAssociatedDomainClass domainClassValue
-    	Date dateCreated
-    	Date lastUpdated
+    String stringValue
+    MyAssociatedDomainClass domainClassValue
+    Date dateCreated
+    Date lastUpdated
 }
 
 class MyAssociatedDomainClass {
-    	String name
-    	Date dateCreated
-    	Date lastUpdated
+    String name
+    Date dateCreated
+    Date lastUpdated
 }
 ```
+
 Import service:
-```
+
+```groovy
 class MyDomainClassImportService {
     static imports = MyDomainClass
-    static transactional = false //turn off transactions for better throughput
 }
 ```
 Import CSV file:
-```
-stringValue,domainClassValue.id
-value1,1
-value2,1
-value3,2
-```    
+
+    stringValue,domainClassValue.id
+    value1,1
+    value2,1
+    value3,2
+
 Custom Association Example
 ----------------------
 Domain classes:
-```
+
+```groovy
 class MyDomainClass {
-    	String stringValue
-    	MyAssociatedDomainClass domainClassValue
-    	Date dateCreated
-    	Date lastUpdated
+    String stringValue
+    MyAssociatedDomainClass domainClassValue
+    Date dateCreated
+    Date lastUpdated
 }
 
 class MyAssociatedDomainClass {
-    	String name
-    	Date dateCreated
-    	Date lastUpdated
+    String name
+    Date dateCreated
+    Date lastUpdated
 }
 ```
+
 Import service:
-```
+
+```groovy
 class MyDomainClassImportService {
     static imports = MyDomainClass
-    static transactional = false //turn off transactions for better throughput
     def afterBindRow(obj, row, index, columns, params, importLogId) {
         if (row['associatedItemName']) {
-	    obj.testImportItem5= MyAssociatedDomainClass.findByName(row['associatedItemName'])
+        obj.testImportItem5= MyAssociatedDomainClass.findByName(row['associatedItemName'])
         }
     }
-
 }
 ```
+
 Import CSV file:
+
 ```
 stringValue,associatedItemName
 value1,joe
 value2,fred
 value3,carl
-```    
+```
 
 Custom Column Marshalling Example
 ----------------------
 
 Domain class:
-```
+
+```groovy
 class MyDomainClass {
-    	String stringValue
-    	Integer customMarshallField
-    	Date dateCreated
-    	Date lastUpdated
+    String stringValue
+    Integer customMarshallField
+    Date dateCreated
+    Date lastUpdated
 }
 ```
+
 Import service:
-```
+
+```groovy
 class MyDomainClassImportService {
     static imports = MyDomainClass
-    static transactional = false //turn off transactions for better throughput
-	
-	def marshall(columnName,  propertyName, value, importLogId) {
-  	def rtn = value
-    if (propertyName == 'customMarshallField') {
-	    rtn = new Integer((rtn ?: '0').toString()) + 10
-	    log.info('marshall:'+columnName+','+value+'->'+rtn)
-  	}
-    return rtn
-  }
+
+    def marshall(columnName,  propertyName, value, importLogId) {
+        def rtn = value
+        if (propertyName == 'customMarshallField') {
+            rtn = new Integer((rtn ?: '0').toString()) + 10
+            log.info('marshall:'+columnName+','+value+'->'+rtn)
+        }
+        return rtn
+    }
 
 }
 ```
@@ -327,46 +346,51 @@ Custom Column Default Example
 You can assign a default value to fields (if the Domain Class does not define a default)
 
 Domain class:
-```
+
+```groovy
 class MyDomainClass {
-    	String stringValue
-    	String customDefaultField
-    	Date dateCreated
-    	Date lastUpdated
+    String stringValue
+    String customDefaultField
+    Date dateCreated
+    Date lastUpdated
 }
 ```
+
 Import service:
-```
+
+```groovy
 class MyDomainClassImportService {
     static imports = MyDomainClass
-    static transactional = false //turn off transactions for better throughput
-	
-  def defaultValue (columnName, propertyName, importLogId) {
-    def rtn = null
-    if (propertyName == 'customDefaultField') {
-	    rtn = new Date().format('HH:mm:ss')
-	    log.info('defaultValue:'+columnName+'->'+rtn)
+
+    def defaultValue (columnName, propertyName, importLogId) {
+        def rtn = null
+        if (propertyName == 'customDefaultField') {
+            rtn = new Date().format('HH:mm:ss')
+            log.info('defaultValue:'+columnName+'->'+rtn)
+        }
+        return rtn
     }
-  	return rtn
-	}
 }
 ```
+
 Import CSV file:
+
 ```
 stringValue,customDefaultField
 value1,
 value2,
 value3,
 ```
+
 Import service properties [default value]
 --------------------------
 
 Add these service properties to modify processing behavior (i.e. "def async = false")
 
- - infoUrl [null] 
- - async [true] 
- - parameterName ['import'] 
- - matchProperties [ ['id'] ] 
+ - infoUrl [null]
+ - async [true]
+ - parameterName ['import']
+ - matchProperties [ ['id'] ]
  - useQueue [false]
  - maxErrors [Integer.MAX_VALUE]
  - doValidation [false]
@@ -375,12 +399,12 @@ Add these service properties to modify processing behavior (i.e. "def async = fa
  - doSummaryEmail [false]
  - doArchiveFile [false]
  - fromEmailAddress ['imports@myapp.com']
- - doIncludeErrorsInSummary [true] 
+ - doIncludeErrorsInSummary [true]
  - confirmationEmailContentTemplate [ImportsService.DEFAULT_CONFIRMATION_EMAIL_CONTENT]
- - summaryEmailContentTemplate [ImportsService.DEFAULT_SUMMARY_EMAIL_CONTENT] 
+ - summaryEmailContentTemplate [ImportsService.DEFAULT_SUMMARY_EMAIL_CONTENT]
  - confirmationEmailSubjectTemplate [ImportsService.DEFAULT_CONFIRMATION_EMAIL_SUBJECT]
  - summaryEmailSubjectTemplate [ImportsService.DEFAULT_SUMMARY_EMAIL_SUBJECT]
- 
+
 Mail Information
 ----------------
 If the custom import service includes the properties `def doConfirmationEmail = true` and/or `def doSummaryEmail = true`, emails will be sent out. By default, the recipient,s email address will be to to the 'email' parameter submitted with the import file. You may override `def summaryEmailAddress(params, importLogId)` and/or `def confirmationEmailAddress(params, importLogId)` to lookup the recipient email using another means.
@@ -390,45 +414,45 @@ If the custom import service includes the properties `def doConfirmationEmail = 
 **Confirmation Email Template**
 
 > Hi,
-> 
-> Your recent import of [${]entityName] has been received. 
-> 
+>
+> Your recent import of [${]entityName] has been received.
+>
 > Filename : [fileName]
-> 
+>
 > Uploaded at : [created]
-> 
+>
 > Total rows provided: [total]
-> 
+>
 > If you experience issues related to your import process, please
 > contact support.
-> 
+>
 > Thank you very much!
 
 
 **Summary Email Template**
 
 > Hi,
-> 
+>
 > Your recent import of [entityName] has been completed. Please find the
 > result statistics below.
-> 
+>
 > Filename : [fileName]
-> 
+>
 > Uploaded at : [created]
-> 
+>
 > Total rows provided: [total]
-> 
+>
 > Total success : [successCount]
-> 
+>
 > Total errors : [errorCount]
-> 
+>
 > Attempted inserts : [insertCount]
-> 
+>
 > Attempted updates : [updateCount]
-> 
+>
 > If you experience issues related to your import process, please
 > contact support..
-> 
+>
 > Thank you very much!
 
 RabbitMQ Information
@@ -439,7 +463,7 @@ If RabbitMQ is installed the queue used for processing imports will be called `$
 
 Import service processing methods that can be overridden
 --------------------------
-```
+```groovy
 // File processing methods
 def validateFile(uploadedFile, params, importLogId)
 def getRowCount(uploadedFile, params, importLogId)
@@ -478,25 +502,25 @@ def confirmationEmailContent(params, importLogId)
 def confirmationEmailSubject(params, importLogId)
 def confirmationEmailAddress(params, importLogId)
 def sendConfirmationEmail(params, importLogId)
-```    
+```
 
 Import logging
 --------------------------
 
 The logger implementation is configurable and pluggable:
 
-```
-grails.plugins.imports.loggingProvider='mem' \\'mongo','default', 'file', [custom class name]
+```groovy
+grails.plugins.imports.loggingProvider = 'mem' \\'mongo','default', 'file', [custom class name]
 ```
 
 The logger can me autowired into Grails artifacts:
 
-```
+```groovy
 def importsLogger
 ```
 
 
-```    
+```groovy
 //Logging methods
 def createImportLog(params)
 def incrementImportCounter(importLogId)
@@ -519,9 +543,9 @@ def findImportLogs(params)
 **NOTE:** The import log is used to maintain state during import processing. The "cancel import" functionality depends on the import log.
 
 Sample Log structure in JSON:
-```
+```json
 {
-   headers:[
+   "headers":[
       "emailValue",
       "longValue",
       "doubleValue",
@@ -531,44 +555,44 @@ Sample Log structure in JSON:
       "integerValue",
       "friendlyName"
    ],
-   total:2,
-   canceled:false,
-   scope:"imports",
-   accountId:null,
-   cancelCount:0,
-   insertCount:0,
-   errorCount:0,
-   errorRows:[
+   "total":2,
+   "canceled":false,
+   "scope":"imports",
+   "accountId":null,
+   "cancelCount":0,
+   "insertCount":0,
+   "errorCount":0,
+   "errorRows":[
 
    ],
-   messages:[
+   "messages":[
       {
-         text:"Starting file processing",
-         ts:"2014-03-20T16:50:29Z"
+         "text":"Starting file processing",
+         "ts":"2014-03-20T16:50:29Z"
       },
       {
-         text:"Process request complete (async processing may still be occurring)",
-         ts:"2014-03-20T16:50:30Z"
+         "text":"Process request complete (async processing may still be occurring)",
+         "ts":"2014-03-20T16:50:30Z"
       }
    ],
-   entityName:"testImportItem1",
-   confirmationEmail:{
-      content:" Hi, Your recent import of testImportItem1 has been received. Filename : testImportItem1.csv Uploaded at : Thu Mar 20 09:50:29 PDT 2014 Total rows provided: 2 If you experience issues related to your import process, please contact support. Thank you very much! ",
-      subject:"Your import of testImportItem1 has been received",
-      from:"imports@myapp.com",
-      recipient:"sefiaconsulting@gmail.com"
+   "entityName":"testImportItem1",
+   "confirmationEmail":{
+      "content":" Hi, Your recent import of testImportItem1 has been received. Filename : testImportItem1.csv Uploaded at : Thu Mar 20 09:50:29 PDT 2014 Total rows provided: 2 If you experience issues related to your import process, please contact support. Thank you very much! ",
+      "subject":"Your import of testImportItem1 has been received",
+      "from":"imports@myapp.com",
+      "recipient":"sefiaconsulting@gmail.com"
    },
-   processed:0,
-   importType:"csv",
-   _id:"2c00b45261134adebdf0e16859aa2bff",
-   created:"2014-03-20T16:50:29Z",
-   userId:null,
-   fileName:"testImportItem1.csv",
-   archivedFileLocator:null,
-   processing:true,
-   updateCount:0,
-   successCount:0,
-   fileSizeBytes:215
+   "processed":0,
+   "importType":"csv",
+   "_id":"2c00b45261134adebdf0e16859aa2bff",
+   "created":"2014-03-20T16:50:29Z",
+   "userId":null,
+   "fileName":"testImportItem1.csv",
+   "archivedFileLocator":null,
+   "processing":true,
+   "updateCount":0,
+   "successCount":0,
+   "fileSizeBytes":215
 }
 ```
 
@@ -596,7 +620,7 @@ There are some default URLs that can be used to access import functionality. The
 // view config: grails.plugins.imports.confirmationView
 /imports/process
 
-// 
+//
 // view config: grails.plugins.imports.errorRowView
 /imports/showErrorRows
 
